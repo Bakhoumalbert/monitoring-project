@@ -88,7 +88,7 @@ resource "aws_security_group" "monitoring_sg" {
 # Instance EC2 pour le monitoring
 resource "aws_instance" "monitoring_server" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.micro"
+  instance_type               = "t2.micro"
   key_name                    = var.key_name
   subnet_id                   = data.aws_subnets.default.ids[0] # ✅ sélection du premier subnet
   associate_public_ip_address = true
