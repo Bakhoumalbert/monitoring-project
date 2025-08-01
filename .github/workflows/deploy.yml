@@ -29,11 +29,11 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      - name: Upload Terraform state
+      - name: Upload Terraform working dir
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-state
-          path: ./terraform/terraform.tfstate
+          name: terraform-dir
+          path: ./terraform
 
   ansible:
     name: Run Ansible
@@ -47,10 +47,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download Terraform state
+      - name: Download Terraform working dir
         uses: actions/download-artifact@v4
         with:
-          name: terraform-state
+          name: terraform-dir
           path: ./terraform
 
       - name: Setup Terraform
