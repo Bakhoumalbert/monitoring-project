@@ -1,0 +1,29 @@
+name: Deploy Monitoring Stack
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build Grafana Image
+        run: docker build -t custom-grafana ./grafana
+
+      - name: Push to Docker Hub (optional)
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+        run: |
+          echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+          docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
+          docker push $DOCKER_USER/custom-grafana:latest
+
+      - name: Deploy with Ansible
+        run: |
+          ansible-playbook -i inventory/hosts.yml playbooks/playbook.yml
