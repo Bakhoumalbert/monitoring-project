@@ -44,25 +44,24 @@ jobs:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
 
-      - name: Build Grafana Image
-        run: docker build -t custom-grafana ./grafana
+        - name: Build Grafana Image
+          run: docker build -t custom-grafana ./grafana
 
-      - name: Push to Docker Hub (optional)
-        if: env.DOCKER_USER != '' && env.DOCKER_PASS != ''
-        run: |
-          echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-          docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
-          docker push $DOCKER_USER/custom-grafana:latest
+        - name: Setup SSH
+          run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H 18.200.244.115 >> ~/.ssh/known_hosts
 
-      - name: Disable strict host key checking
-        run: |
-          mkdir -p ~/.ssh
-          echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+        - name: Disable strict host checking (optionnel)
+          run: |
+            echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-      - name: Deploy with Ansible
-        run: |
-          ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
+        - name: Deploy with Ansible
+          run: |
+            ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
