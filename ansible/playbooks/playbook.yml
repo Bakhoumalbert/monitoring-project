@@ -1,51 +1,3 @@
-# # Playbooks/playbook.yml
-# - name: Déploiement du monitoring
-#   hosts: all
-#   become: true
-#   tasks:
-#     - name: Mettre à jour les paquets
-#       apt:
-#         update_cache: true
-
-#     - name: Installer Docker
-#       apt:
-#         name: docker.io
-#         state: present
-
-#     - name: Activer et démarrer Docker
-#       systemd:
-#         name: docker
-#         enabled: true
-#         state: started
-
-#     - name: Installer pip3
-#       apt:
-#         name: python3-pip
-#         state: present
-
-#     - name: Installer Docker SDK pour Python globalement (via root)
-#       pip:
-#         name: docker
-#         executable: pip3
-#       become: true
-
-#     - name: Lancer Prometheus
-#       docker_container:
-#         name: prometheus
-#         image: prom/prometheus
-#         ports:
-#           - "9090:9090"
-#         state: started
-#         restart_policy: always
-
-#     - name: Lancer Grafana
-#       docker_container:
-#         name: grafana
-#         image: grafana/grafana
-#         state: started
-#         ports:
-#           - "3000:3000"
-
 - name: Déployer la stack monitoring avec images custom
   hosts: all
   become: true
@@ -60,28 +12,58 @@
         state: present
         update_cache: true
 
+    - name: Ajouter l'utilisateur au groupe docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      notify: Redémarrer la session
+
     - name: Activer et démarrer Docker
       systemd:
         name: docker
         enabled: true
         state: started
 
+    - name: Créer le dossier Prometheus s’il n’existe pas
+      file:
+        path: /etc/prometheus
+        state: directory
+        mode: "0755"
+
+    - name: Supprimer l'ancien conteneur Prometheus s'il existe
+      docker_container:
+        name: prometheus
+        state: absent
+        force_kill: true
+
     - name: Lancer Prometheus
       docker_container:
         name: prometheus
         image: "{{ prometheus_image }}"
-        state: started
         restart_policy: always
+        state: started
         ports:
           - "9090:9090"
         volumes:
           - /etc/prometheus:/etc/prometheus
 
+    - name: Supprimer l'ancien conteneur Grafana s'il existe
+      docker_container:
+        name: grafana
+        state: absent
+        force_kill: true
+
     - name: Lancer Grafana custom
       docker_container:
         name: grafana
         image: "{{ grafana_image }}"
-        state: started
         restart_policy: always
+        state: started
         ports:
           - "3000:3000"
+
+  handlers:
+    - name: Redémarrer la session
+      shell: "newgrp docker"
+      when: ansible_user != 'root'
