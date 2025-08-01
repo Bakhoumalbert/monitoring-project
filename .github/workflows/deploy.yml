@@ -68,9 +68,6 @@ jobs:
       #   working-directory: ./terraform
       #   run: terraform output
 
-      - name: Ensure ansible folder exists
-        run: mkdir -p ./ansible
-
       - name: Get EC2 IP from Terraform output
         working-directory: ./terraform
         run: |
@@ -79,6 +76,7 @@ jobs:
 
       - name: Create Ansible inventory
         run: |
+          mkdir -p ./ansible
           IP=$(cat ./ansible/host_ip.txt)
           echo "[monitoring]" > ./ansible/hosts
           echo "$IP ansible_user=ubuntu ansible_ssh_private_key_file=/home/runner/.ssh/id_rsa" >> ./ansible/hosts
@@ -86,6 +84,10 @@ jobs:
 
       - name: Debug Ansible inventory
         run: cat ./ansible/hosts
+
+      - name: Validate Ansible inventory
+        run: |
+          ansible-inventory -i ./ansible/hosts --list
 
       - name: Setup SSH key
         run: |
@@ -105,4 +107,4 @@ jobs:
 
       - name: Run Ansible Playbook
         working-directory: ./ansible
-        run: ansible-playbook -i hosts, playbooks/playbook.yml
+        run: ansible-playbook -i hosts playbooks/playbook.yml
