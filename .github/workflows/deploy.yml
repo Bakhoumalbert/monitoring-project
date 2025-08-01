@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  PUSH_TO_DOCKER: false # <--- mets true si tu veux activer le push
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -16,7 +19,7 @@ jobs:
         run: docker build -t custom-grafana ./grafana
 
       - name: Push to Docker Hub (optional)
-        if: ${{ secrets.DOCKER_USER != '' && secrets.DOCKER_PASS != '' }}
+        if: env.PUSH_TO_DOCKER == 'true'
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
@@ -26,5 +29,4 @@ jobs:
           docker push $DOCKER_USER/custom-grafana:latest
 
       - name: Deploy with Ansible
-        run: |
-          ansible-playbook -i inventory/hosts.yml playbooks/playbook.yml
+        run: ansible-playbook -i inventory/hosts.yml playbooks/playbook.yml
