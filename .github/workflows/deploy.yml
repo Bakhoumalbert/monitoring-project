@@ -74,6 +74,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
       - name: Get EC2 IP from Terraform output
         working-directory: ./terraform
         run: terraform output -raw instance_ip > ../ansible/host_ip.txt
