@@ -1,3 +1,51 @@
+# # Playbooks/playbook.yml
+# - name: Déploiement du monitoring
+#   hosts: all
+#   become: true
+#   tasks:
+#     - name: Mettre à jour les paquets
+#       apt:
+#         update_cache: true
+
+#     - name: Installer Docker
+#       apt:
+#         name: docker.io
+#         state: present
+
+#     - name: Activer et démarrer Docker
+#       systemd:
+#         name: docker
+#         enabled: true
+#         state: started
+
+#     - name: Installer pip3
+#       apt:
+#         name: python3-pip
+#         state: present
+
+#     - name: Installer Docker SDK pour Python globalement (via root)
+#       pip:
+#         name: docker
+#         executable: pip3
+#       become: true
+
+#     - name: Lancer Prometheus
+#       docker_container:
+#         name: prometheus
+#         image: prom/prometheus
+#         ports:
+#           - "9090:9090"
+#         state: started
+#         restart_policy: always
+
+#     - name: Lancer Grafana
+#       docker_container:
+#         name: grafana
+#         image: grafana/grafana
+#         state: started
+#         ports:
+#           - "3000:3000"
+
 - name: Déployer la stack monitoring avec images custom
   hosts: all
   become: true
