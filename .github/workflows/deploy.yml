@@ -58,6 +58,11 @@ jobs:
           docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
           docker push $DOCKER_USER/custom-grafana:latest
 
+      - name: Disable strict host key checking
+        run: |
+          mkdir -p ~/.ssh
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
       - name: Deploy with Ansible
         run: |
           ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
