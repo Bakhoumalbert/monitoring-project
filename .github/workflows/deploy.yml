@@ -40,9 +40,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
 
     steps:
       - name: Checkout
@@ -51,26 +48,32 @@ jobs:
       - name: Build Grafana Image
         run: docker build -t custom-grafana ./grafana
 
+      # 🚫 Étape optionnelle si tu ne veux pas pousser sur Docker Hub
+      # Commenter ou supprimer si inutilisé
       - name: Push to Docker Hub (optional)
-        if: env.DOCKER_USER != '' && env.DOCKER_PASS != ''
+        if: ${{ secrets.DOCKER_USER != '' && secrets.DOCKER_PASS != '' }}
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
         run: |
           echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
           docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
           docker push $DOCKER_USER/custom-grafana:latest
-            - name: Setup SSH
 
+      # ✅ Setup clé SSH depuis secret
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H <YOUR_SERVER_IP> >> ~/.ssh/known_hosts
+          ssh-keyscan -H 18.200.244.115 >> ~/.ssh/known_hosts
 
+      # ✅ Optionnel : désactiver strict host checking
       - name: Disable strict host key checking
         run: |
-          mkdir -p ~/.ssh
           echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
+      # ✅ Lancer Ansible
       - name: Deploy with Ansible
         run: |
           ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
