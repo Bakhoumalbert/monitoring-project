@@ -56,6 +56,18 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Debug: afficher fichiers Terraform
+        working-directory: ./terraform
+        run: |
+          echo "==> Liste des fichiers :"
+          ls -la
+          echo "==> Contenu du terraform.tfstate :"
+          cat terraform.tfstate | head -n 20
+
+      - name: Debug: terraform output
+        working-directory: ./terraform
+        run: terraform output
+
       - name: Get EC2 IP from Terraform output
         working-directory: ./terraform
         run: terraform output -raw instance_ip > ../ansible/host_ip.txt
