@@ -12,58 +12,28 @@
         state: present
         update_cache: true
 
-    - name: Ajouter l'utilisateur au groupe docker
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
-      notify: Redémarrer la session
-
     - name: Activer et démarrer Docker
       systemd:
         name: docker
         enabled: true
         state: started
 
-    - name: Créer le dossier Prometheus s’il n’existe pas
-      file:
-        path: /etc/prometheus
-        state: directory
-        mode: "0755"
-
-    - name: Supprimer l'ancien conteneur Prometheus s'il existe
-      docker_container:
-        name: prometheus
-        state: absent
-        force_kill: true
-
     - name: Lancer Prometheus
       docker_container:
         name: prometheus
         image: "{{ prometheus_image }}"
-        restart_policy: always
         state: started
+        restart_policy: always
         ports:
           - "9090:9090"
         volumes:
           - /etc/prometheus:/etc/prometheus
 
-    - name: Supprimer l'ancien conteneur Grafana s'il existe
-      docker_container:
-        name: grafana
-        state: absent
-        force_kill: true
-
     - name: Lancer Grafana custom
       docker_container:
         name: grafana
         image: "{{ grafana_image }}"
-        restart_policy: always
         state: started
+        restart_policy: always
         ports:
           - "3000:3000"
-
-  handlers:
-    - name: Redémarrer la session
-      shell: "newgrp docker"
-      when: ansible_user != 'root'

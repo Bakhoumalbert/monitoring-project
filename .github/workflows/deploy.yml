@@ -35,15 +35,6 @@ jobs:
           name: terraform-dir
           path: ./terraform
 
-      - name: Vérifier que Prometheus tourne
-        ansible.builtin.shell: systemctl is-active prometheus
-        register: prometheus_status
-        ignore_errors: true
-
-      - name: Afficher le statut
-        ansible.builtin.debug:
-          var: prometheus_status.stdout
-
   ansible:
     name: Run Ansible
     runs-on: ubuntu-latest
@@ -65,19 +56,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Debug afficher fichiers Terraform
-        working-directory: ./terraform
-        run: |
-          echo "==> Liste des fichiers :"
-          ls -la
-          echo "==> Contenu du terraform.tfstate :"
-          cat terraform.tfstate | head -n 20
-
-      # - name: Debug terraform output
-      #   working-directory: ./terraform
-      #   run: terraform output
-
-      - name: Get EC2 IP from Terraform output
+      - name: Extract EC2 IP from Terraform output
         working-directory: ./terraform
         run: |
           terraform init -input=false -no-color
@@ -106,24 +85,3 @@ jobs:
       - name: Run Ansible Playbook
         working-directory: ./ansible
         run: ansible-playbook -i hosts playbooks/playbook.yml
-
-      - name: Installer Grafana
-        ansible.builtin.apt:
-          name: grafana
-          state: present
-          update_cache: yes
-
-      - name: Activer et démarrer Grafana
-        ansible.builtin.systemd:
-          name: grafana-server
-          enabled: yes
-          state: started
-
-      - name: Vérifier que Grafana écoute sur le bon port
-        ansible.builtin.shell: sudo netstat -tuln | grep 3000
-        register: grafana_port_check
-        ignore_errors: true
-
-      - name: Afficher le résultat de netstat pour Grafana
-        ansible.builtin.debug:
-          var: grafana_port_check.stdout
