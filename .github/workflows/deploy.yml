@@ -74,12 +74,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Download Terraform state
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-state
+          path: ./terraform
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
       - name: Get EC2 IP from Terraform output
         working-directory: ./terraform
         run: terraform output -raw instance_ip > ../ansible/host_ip.txt
+
+      - name: Upload Terraform state
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-state
+          path: ./terraform/terraform.tfstate
 
       - name: Setup SSH key
         run: |
