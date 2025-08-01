@@ -1,11 +1,41 @@
+# name: Deploy Monitoring Stack
+
+# on:
+#   push:
+#     branches: [main]
+
+# env:
+#   PUSH_TO_DOCKER: false # <--- mets true si tu veux activer le push
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
+
+#       - name: Build Grafana Image
+#         run: docker build -t custom-grafana ./grafana
+
+#       - name: Push to Docker Hub (optional)
+#         if: env.PUSH_TO_DOCKER == 'true'
+#         env:
+#           DOCKER_USER: ${{ secrets.DOCKER_USER }}
+#           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+#         run: |
+#           echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+#           docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
+#           docker push $DOCKER_USER/custom-grafana:latest
+
+#       - name: Deploy with Ansible
+#         run: ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
+
 name: Deploy Monitoring Stack
 
 on:
   push:
     branches: [main]
-
-env:
-  PUSH_TO_DOCKER: false # <--- mets true si tu veux activer le push
 
 jobs:
   build-and-deploy:
@@ -18,8 +48,8 @@ jobs:
       - name: Build Grafana Image
         run: docker build -t custom-grafana ./grafana
 
-      - name: Push to Docker Hub (optional)
-        if: env.PUSH_TO_DOCKER == 'true'
+      - name: Optionally Push to Docker Hub
+        if: ${{ secrets.DOCKER_USER && secrets.DOCKER_PASS }}
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
@@ -28,5 +58,19 @@ jobs:
           docker tag custom-grafana $DOCKER_USER/custom-grafana:latest
           docker push $DOCKER_USER/custom-grafana:latest
 
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Add server to known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Disable Host Key Checking (alternative to above if needed)
+        run: echo "ANSIBLE_HOST_KEY_CHECKING=False" >> $GITHUB_ENV
+
       - name: Deploy with Ansible
-        run: ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
+        run: |
+          ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
