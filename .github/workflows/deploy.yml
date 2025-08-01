@@ -68,6 +68,9 @@ jobs:
       #   working-directory: ./terraform
       #   run: terraform output
 
+      - name: Ensure ansible folder exists
+        run: mkdir -p ./ansible
+
       - name: Get EC2 IP from Terraform output
         working-directory: ./terraform
         run: |
