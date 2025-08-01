@@ -94,7 +94,7 @@ jobs:
         run: terraform output -raw instance_ip > ../ansible/host_ip.txt
 
       - name: Upload Terraform state
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-state
           path: ./terraform/terraform.tfstate
