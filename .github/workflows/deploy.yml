@@ -96,4 +96,4 @@ jobs:
 
       - name: Run Ansible Playbook
         working-directory: ./ansible
-        run: ansible-playbook -i hosts playbook.yml
+        run: ansible-playbook -i hosts Playbooks/playbook.yml
