@@ -29,4 +29,4 @@ jobs:
           docker push $DOCKER_USER/custom-grafana:latest
 
       - name: Deploy with Ansible
-        run: ansible-playbook -i grafana/inventory/hosts.yml grafana/playbooks/playbook.yml
+        run: ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/playbook.yml
