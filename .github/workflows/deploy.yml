@@ -75,7 +75,7 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform init -input=false -no-color
-          terraform output -raw instance_ip > ./ansible/host_ip.txt
+          terraform output -raw instance_ip > ../ansible/host_ip.txt
 
       - name: Create Ansible inventory
         run: |
