@@ -16,6 +16,7 @@ jobs:
         run: docker build -t custom-grafana ./grafana
 
       - name: Push to Docker Hub (optional)
+        if: ${{ secrets.DOCKER_USER != '' && secrets.DOCKER_PASS != '' }}
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
